@@ -139,9 +139,7 @@ function calculateNPQ() {
 
   document.getElementById("rawScoreText").innerHTML = `原始總分：<strong>${total}</strong> / ${maxScore}`;
   document.getElementById("percentScoreText").innerHTML = `轉換分數：<strong>${percent}</strong> 分`;
-<div style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: 15px; border-radius: 5px; text-align: center; font-weight: bold; margin: 20px 0; font-family: sans-serif;">
-    請將此頁面出示給您的物理治療師。請勿關閉此頁面！
-</div>
+  document. 請將此頁面出示給您的物理治療師。請勿關閉此頁面！
   
   document.getElementById("scoreModal").style.display = "block";
 }
