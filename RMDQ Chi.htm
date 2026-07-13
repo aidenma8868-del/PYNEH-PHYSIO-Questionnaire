@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>盧倫摩理氏背痛問卷（RMDQ）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      margin-bottom: 20px;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    .question {
+      margin-bottom: 15px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .question-title {
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      width: fit-content;
+    }
+
+    .option input {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125a9c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      padding: 10px 16px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>盧倫摩理氏背痛問卷（RMDQ）</h1>
+
+  <div class="instructions">
+    當背部痛楚或不適時，你或會發覺自己未能像以往般工作。  
+    下列句子是一些患有背痛的人用來形容自己的。  
+    <br><br>
+    <strong>如句子恰當地形容你今日的情況，請在方格內打勾。</strong>
+  </div>
+
+  <div id="questions"></div>
+
+  <button onclick="calculateRMDQ()">計算分數</button>
+</div>
+
+<!-- Modal -->
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>RMDQ 分數</h2>
+    <p id="scoreText"></p>
+    <p style="font-size:0.9rem; color:#555;">
+      分數範圍：0（無功能障礙）至 24（最嚴重功能障礙）
+    </p>
+    <button class="close-btn" onclick="closeModal()">關閉</button>
+  </div>
+</div>
+
+<script>
+const items = [
+  "因為背痛，我經常留在家中。",
+  "我經常轉換姿勢，保持背部舒適。",
+  "因為背部，我走得比平常慢。",
+  "因為背部，我已停止做日常負責的家務。",
+  "因為背部影響，我上樓梯時要利用扶手。",
+  "因為背部影響，我比平常較多時間躺下休息。",
+  "因為背部影響，我需要扶着東西才能從梳化站起來。",
+  "因為背部影響，我嘗試請別人替我完成一些事情。",
+  "因為背部影響，我穿衣比平常緩慢。",
+  "因為背部影響，我只可站立一段短時間。",
+  "因為背部影響，我避免彎腰或跪下。",
+  "因為背部影響，我坐在椅子上很難才能站起。",
+  "我的背部差不多每時每刻都痛楚。",
+  "因為背部影響，睡在床上很難轉身。",
+  "因為背部影響，我的胃口不佳。",
+  "因為背部影響，穿襪子或襪褲時會有困難。",
+  "因為背痛，我只能走一段短距離。",
+  "因為背部影響，我睡得不好。",
+  "因為背部，我需要別人協助穿衣服。",
+  "因為背部影響，我每天大部分時間都是坐着。",
+  "因為背部影響，我避免做家中粗重的工作。",
+  "因為背痛，我的脾氣比平常差。",
+  "因為背部影響，我上樓梯比平常緩慢。",
+  "因為背部影響，我大部分時間睡在床上。"
+];
+
+const questionsDiv = document.getElementById("questions");
+
+items.forEach((text, index) => {
+  const qNum = index + 1;
+
+  const qDiv = document.createElement("div");
+  qDiv.className = "question";
+
+  const title = document.createElement("div");
+  title.className = "question-title";
+  title.textContent = `${qNum}. ${text}`;
+  qDiv.appendChild(title);
+
+  const label = document.createElement("label");
+  label.className = "option";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.name = `q${qNum}`;
+  input.value = 1;
+
+  label.appendChild(input);
+  label.appendChild(document.createTextNode("如符合今日情況請勾選"));
+  qDiv.appendChild(label);
+
+  questionsDiv.appendChild(qDiv);
+});
+
+function calculateRMDQ() {
+  let total = 0;
+
+  for (let i = 1; i <= 24; i++) {
+    const checked = document.querySelector(`input[name="q${i}"]`).checked;
+    if (checked) total++;
+  }
+
+  document.getElementById("scoreText").innerHTML =
+    `<strong>${total}</strong> 分（共 24 分）`;
+
+  document.getElementById("scoreModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("scoreModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>

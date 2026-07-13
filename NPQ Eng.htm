@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Northwick Park Neck Pain Questionnaire (NPQ)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      margin-bottom: 20px;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .option input {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125a9c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      padding: 10px 16px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #333;
+    }
+
+    .warning {
+      color: #c62828;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Northwick Park Neck Pain Questionnaire (NPQ)</h1>
+
+  <div class="instructions">
+    Please answer every section and select <strong>only one option</strong> that best describes your condition today.
+  </div>
+
+  <div id="questions"></div>
+
+  <button onclick="calculateNPQ()">Calculate Score</button>
+  <div id="warning" class="warning"></div>
+</div>
+
+<!-- Modal -->
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>Your NPQ Score</h2>
+    <p id="rawScore"></p>
+    <p id="percentScore"></p>
+    <p style="font-size:0.9rem; color:#555;">
+      Score range: 0 (no disability) to 100% (maximum disability)
+    </p>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    title: "1. Pain Intensity",
+    options: [
+      "I have no pain at the moment.",
+      "My pain is very mild at the moment.",
+      "My pain is moderate at the moment.",
+      "My pain is fairly severe at the moment.",
+      "My pain is very severe at the moment."
+    ]
+  },
+  {
+    title: "2. Pain and Sleeping",
+    options: [
+      "My sleep is never disturbed by pain.",
+      "My sleep is occasionally disturbed by pain.",
+      "My sleep is regularly disturbed by pain.",
+      "Because of pain I have less than 5 hours sleep in total.",
+      "Because of pain I have less than 2 hours sleep in total."
+    ]
+  },
+  {
+    title: "3. Pins, Needles or Numbness in Arms at Night",
+    options: [
+      "I have no pins and needles or numbness at night.",
+      "I have occasional pins and needles or numbness at night.",
+      "My sleep is regularly disturbed by pins and needles or numbness.",
+      "Because of pins and needles I have less than 5 hours sleep in total.",
+      "Because of pins and needles I have less than 2 hours sleep in total."
+    ]
+  },
+  {
+    title: "4. Duration of Symptoms",
+    options: [
+      "My neck and arms feel normal all day.",
+      "I have symptoms in my neck or arms on waking, lasting less than 1 hour.",
+      "Symptoms are present on and off for 1–4 hours.",
+      "Symptoms are present on and off for more than 4 hours.",
+      "Symptoms are present continuously all day."
+    ]
+  },
+  {
+    title: "5. Carrying",
+    options: [
+      "I can carry heavy objects without extra pain.",
+      "I can carry heavy objects, but they give me extra pain.",
+      "Pain prevents me from carrying heavy objects, but I can manage medium weight objects.",
+      "I can only lift light weight objects.",
+      "I cannot lift anything at all."
+    ]
+  },
+  {
+    title: "6. Reading and Watching TV",
+    options: [
+      "I can do this as long as I wish with no problems.",
+      "I can do this as long as I wish, if I'm in a suitable position.",
+      "I can do this as long as I wish, but it causes extra pain.",
+      "Pain causes me to stop doing this sooner than I would like.",
+      "Pain prevents me from doing this at all."
+    ]
+  },
+  {
+    title: "7. Working / Housework",
+    options: [
+      "I can do my usual work without extra pain.",
+      "I can do my usual work, but it gives me extra pain.",
+      "Pain prevents me from doing my usual work for more than half the usual time.",
+      "Pain prevents me from doing my usual work for more than a quarter of the usual time.",
+      "Pain prevents me from working at all."
+    ]
+  },
+  {
+    title: "8. Social Activities",
+    options: [
+      "My social life is normal and causes me no extra pain.",
+      "My social life is normal but increases the degree of pain.",
+      "Pain has restricted my social life, but I am still able to go out.",
+      "Pain has restricted my social life to the home.",
+      "I have no social life because of pain."
+    ]
+  },
+  {
+    title: "9. Driving (if applicable)",
+    options: [
+      "I can drive whenever necessary without discomfort.",
+      "I can drive whenever necessary, but with discomfort.",
+      "Neck pain or stiffness limits my driving occasionally.",
+      "Neck pain or stiffness limits my driving frequently.",
+      "I cannot drive at all due to neck symptoms."
+    ]
+  }
+];
+
+const questionsDiv = document.getElementById("questions");
+
+questions.forEach((q, index) => {
+  const qNum = index + 1;
+  const qDiv = document.createElement("div");
+  qDiv.className = "question";
+
+  const title = document.createElement("div");
+  title.className = "question-title";
+  title.textContent = q.title;
+  qDiv.appendChild(title);
+
+  const optionsDiv = document.createElement("div");
+  optionsDiv.className = "options";
+
+  q.options.forEach((opt, i) => {
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = `q${qNum}`;
+    input.value = i;
+
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(opt));
+    optionsDiv.appendChild(label);
+  });
+
+  qDiv.appendChild(optionsDiv);
+  questionsDiv.appendChild(qDiv);
+});
+
+function calculateNPQ() {
+  const warning = document.getElementById("warning");
+  warning.textContent = "";
+
+  let total = 0;
+  let answered = 0;
+
+  for (let i = 1; i <= 9; i++) {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    if (!selected) {
+      warning.textContent = "Please complete all sections before calculating.";
+      return;
+    }
+    total += parseInt(selected.value);
+    answered++;
+  }
+
+  const maxScore = answered === 9 ? 36 : 32;
+  const percent = ((total / maxScore) * 100).toFixed(1);
+
+  document.getElementById("rawScore").innerHTML =
+    `Raw Score: <strong>${total}</strong> / ${maxScore}`;
+
+  document.getElementById("percentScore").innerHTML =
+    `Percentage Disability: <strong>${percent}%</strong>`;
+
+  document.getElementById("scoreModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("scoreModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>

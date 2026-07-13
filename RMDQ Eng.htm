@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Roland-Morris Disability Questionnaire (RMDQ)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      margin-bottom: 20px;
+      color: #444;
+      line-height: 1.5;
+    }
+
+    .question {
+      margin-bottom: 15px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .question-title {
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      width: fit-content;
+    }
+
+    .option input {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125a9c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      padding: 10px 16px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Roland-Morris Disability Questionnaire (RMDQ)</h1>
+
+  <div class="instructions">
+    When your back hurts, you may find it difficult to do some things you normally do.  
+    This list contains sentences that people have used to describe themselves when they have back pain.  
+    <br><br>
+    <strong>Tick a sentence ONLY if it describes you today.</strong>
+  </div>
+
+  <div id="questions"></div>
+
+  <button onclick="calculateRMDQ()">Calculate Score</button>
+</div>
+
+<!-- Modal -->
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>Your RMDQ Score</h2>
+    <p id="scoreText"></p>
+    <p style="font-size:0.9rem; color:#555;">
+      Score range: 0 (no disability) to 24 (maximum disability)
+    </p>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const items = [
+  "I stay at home most of the time because of my back.",
+  "I change position frequently to try and get my back comfortable.",
+  "I walk more slowly than usual because of my back.",
+  "Because of my back I am not doing any of the jobs that I usually do around the house.",
+  "Because of my back, I use a handrail to get upstairs.",
+  "Because of my back, I lie down to rest more often.",
+  "Because of my back, I have to hold on to something to get out of an easy chair.",
+  "Because of my back, I try to get other people to do things for me.",
+  "I get dressed more slowly than usual because of my back.",
+  "I only stand for short periods of time because of my back.",
+  "Because of my back, I try not to bend or kneel down.",
+  "I find it difficult to get out of a chair because of my back.",
+  "My back is painful almost all the time.",
+  "I find it difficult to turn over in bed because of my back.",
+  "My appetite is not very good because of my back pain.",
+  "I have trouble putting on my socks (or stockings) because of the pain in my back.",
+  "I only walk short distances because of my back.",
+  "I sleep less well because of my back.",
+  "Because of my back pain, I get dressed with help from someone else.",
+  "I sit down for most of the day because of my back.",
+  "I avoid heavy jobs around the house because of my back.",
+  "Because of my back pain, I am more irritable and bad tempered with people than usual.",
+  "Because of my back, I go upstairs more slowly than usual.",
+  "I stay in bed most of the time because of my back."
+];
+
+const questionsDiv = document.getElementById("questions");
+
+items.forEach((text, index) => {
+  const qNum = index + 1;
+
+  const qDiv = document.createElement("div");
+  qDiv.className = "question";
+
+  const title = document.createElement("div");
+  title.className = "question-title";
+  title.textContent = `${qNum}. ${text}`;
+  qDiv.appendChild(title);
+
+  const label = document.createElement("label");
+  label.className = "option";
+
+  const input = document.createElement("input");
+  input.type = "checkbox";
+  input.name = `q${qNum}`;
+  input.value = 1;
+
+  label.appendChild(input);
+  label.appendChild(document.createTextNode("Tick if true today"));
+  qDiv.appendChild(label);
+
+  questionsDiv.appendChild(qDiv);
+});
+
+function calculateRMDQ() {
+  let total = 0;
+
+  for (let i = 1; i <= 24; i++) {
+    const checked = document.querySelector(`input[name="q${i}"]`).checked;
+    if (checked) total++;
+  }
+
+  document.getElementById("scoreText").innerHTML =
+    `<strong>${total}</strong> out of 24`;
+
+  document.getElementById("scoreModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("scoreModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>

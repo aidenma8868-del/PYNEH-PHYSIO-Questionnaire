@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>上肢功能受損程度問卷（Chinese QuickDASH）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .option input {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125a9c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      padding: 10px 16px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #333;
+    }
+
+    .warning {
+      color: #c62828;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .options {
+        flex-direction: column;
+      }
+      .option {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>上肢功能受損程度問卷（Chinese QuickDASH）</h1>
+  <p>請根據你過去一星期的情況，選擇最符合你能力或症狀的分數。</p>
+
+  <div id="questions"></div>
+
+  <button onclick="calculateQDASH()">計算分數</button>
+  <div id="warning" class="warning"></div>
+</div>
+
+<!-- Modal -->
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>QuickDASH 結果</h2>
+    <p id="rawScoreText"></p>
+    <p id="finalScoreText"></p>
+    <p style="font-size:0.9rem; color:#555;">
+      QuickDASH 分數範圍：0（最佳功能）至 100（最差功能）
+    </p>
+    <button class="close-btn" onclick="closeModal()">關閉</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  "1. 扭開緊或新的瓶蓋",
+  "2. 做消耗大量體力的家務（例如：抹窗或洗擦地板）",
+  "3. 攜帶購物袋或公事包",
+  "4. 清洗背部",
+  "5. 用刀切食物",
+  "6. 進行需要上肢發力或承受衝力的餘閒活動（如高爾夫、排球、網球等）",
+  "7. 因肩膊、手臂或手部問題影響社交活動的程度",
+  "8. 因肩膊、手臂或手部問題影響工作或日常活動的程度",
+  "9. 肩膊、手臂或手部的痛楚程度",
+  "10. 肩膊、手臂或手部的針刺感覺程度",
+  "11. 因肩膊、手臂或手部痛楚引致睡眠困難的程度"
+];
+
+const labels = [
+  "1 – 沒有困難 / 沒有症狀",
+  "2 – 少許困難 / 輕微",
+  "3 – 中度困難 / 中度",
+  "4 – 非常困難 / 嚴重",
+  "5 – 不能做到 / 極度"
+];
+
+const questionsDiv = document.getElementById("questions");
+
+questions.forEach((q, index) => {
+  const qNum = index + 1;
+  const qDiv = document.createElement("div");
+  qDiv.className = "question";
+
+  const title = document.createElement("div");
+  title.className = "question-title";
+  title.textContent = q;
+  qDiv.appendChild(title);
+
+  const optionsDiv = document.createElement("div");
+  optionsDiv.className = "options";
+
+  for (let i = 1; i <= 5; i++) {
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = `q${qNum}`;
+    input.value = i;
+
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(labels[i - 1]));
+    optionsDiv.appendChild(label);
+  }
+
+  qDiv.appendChild(optionsDiv);
+  questionsDiv.appendChild(qDiv);
+});
+
+function calculateQDASH() {
+  const warning = document.getElementById("warning");
+  warning.textContent = "";
+
+  let total = 0;
+  let count = 0;
+
+  for (let i = 1; i <= 11; i++) {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    if (!selected) {
+      warning.textContent = "請完成所有題目後再計算分數。";
+      return;
+    }
+    total += parseInt(selected.value);
+    count++;
+  }
+
+  // QuickDASH formula: ((sum/n) - 1) × 25
+  const mean = total / count;
+  const finalScore = ((mean - 1) * 25).toFixed(1);
+
+  document.getElementById("rawScoreText").innerHTML = `原始分數總和：<strong>${total}</strong>`;
+  document.getElementById("finalScoreText").innerHTML = `QuickDASH 最終分數：<strong>${finalScore}</strong>`;
+  document.getElementById("scoreModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("scoreModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>

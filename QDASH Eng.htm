@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QuickDASH Outcome Measure (English)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      margin-bottom: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+
+    .question-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .option input {
+      cursor: pointer;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #1976d2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #125a9c;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .close-btn {
+      margin-top: 15px;
+      padding: 10px 16px;
+      background: #555;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .close-btn:hover {
+      background: #333;
+    }
+
+    .warning {
+      color: #c62828;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .options {
+        flex-direction: column;
+      }
+      .option {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>QuickDASH Outcome Measure</h1>
+  <p>Please answer based on your condition in the last week.</p>
+
+  <div id="questions"></div>
+
+  <button onclick="calculateQDASH()">Calculate Score</button>
+  <div id="warning" class="warning"></div>
+</div>
+
+<!-- Modal -->
+<div id="scoreModal" class="modal">
+  <div class="modal-content">
+    <h2>QuickDASH Results</h2>
+    <p id="rawScoreText"></p>
+    <p id="finalScoreText"></p>
+    <p style="font-size:0.9rem; color:#555;">
+      Score range: 0 (no disability) to 100 (most severe disability)
+    </p>
+    <button class="close-btn" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  "1. Open a tight or new jar.",
+  "2. Do heavy household chores (e.g., wash walls, floors).",
+  "3. Carry a shopping bag or briefcase.",
+  "4. Wash your back.",
+  "5. Use a knife to cut food.",
+  "6. Recreational activities requiring force/impact through the arm (e.g., golf, hammering, tennis).",
+  "7. Extent your arm/shoulder/hand problem interfered with social activities.",
+  "8. Limitation in work or daily activities due to arm/shoulder/hand problem.",
+  "9. Arm, shoulder or hand pain.",
+  "10. Tingling (pins and needles) in your arm, shoulder or hand.",
+  "11. Difficulty sleeping due to arm/shoulder/hand pain."
+];
+
+const labels = [
+  "1 – No difficulty / None",
+  "2 – Mild difficulty / Mild",
+  "3 – Moderate difficulty / Moderate",
+  "4 – Severe difficulty / Severe",
+  "5 – Unable / Extreme"
+];
+
+const questionsDiv = document.getElementById("questions");
+
+questions.forEach((q, index) => {
+  const qNum = index + 1;
+  const qDiv = document.createElement("div");
+  qDiv.className = "question";
+
+  const title = document.createElement("div");
+  title.className = "question-title";
+  title.textContent = q;
+  qDiv.appendChild(title);
+
+  const optionsDiv = document.createElement("div");
+  optionsDiv.className = "options";
+
+  for (let i = 1; i <= 5; i++) {
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const input = document.createElement("input");
+    input.type = "radio";
+    input.name = `q${qNum}`;
+    input.value = i;
+
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(labels[i - 1]));
+    optionsDiv.appendChild(label);
+  }
+
+  qDiv.appendChild(optionsDiv);
+  questionsDiv.appendChild(qDiv);
+});
+
+function calculateQDASH() {
+  const warning = document.getElementById("warning");
+  warning.textContent = "";
+
+  let total = 0;
+  let count = 0;
+
+  for (let i = 1; i <= 11; i++) {
+    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+    if (!selected) {
+      warning.textContent = "Please complete all questions before calculating.";
+      return;
+    }
+    total += parseInt(selected.value);
+    count++;
+  }
+
+  const mean = total / count;
+  const finalScore = ((mean - 1) * 25).toFixed(1);
+
+  document.getElementById("rawScoreText").innerHTML = `Raw total score: <strong>${total}</strong>`;
+  document.getElementById("finalScoreText").innerHTML = `QuickDASH Score: <strong>${finalScore}</strong>`;
+  document.getElementById("scoreModal").style.display = "block";
+}
+
+function closeModal() {
+  document.getElementById("scoreModal").style.display = "none";
+}
+</script>
+
+</body>
+</html>
