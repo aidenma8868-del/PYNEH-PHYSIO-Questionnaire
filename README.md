@@ -1,5 +1,4 @@
 # PYNEH-PHYSIO-Questionnaire
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -22,6 +21,19 @@
     .close-btn { margin-top:15px; padding:10px 16px; background:#555; color:white; border:none; border-radius:6px; cursor:pointer; }
     .close-btn:hover { background:#333; }
     .warning { color:#c62828; margin-top:10px; font-size:0.9rem; }
+    
+    /* Notice Styling */
+    .physio-notice {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+      padding: 12px;
+      border-radius: 5px;
+      font-weight: bold;
+      margin: 15px 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -37,6 +49,12 @@
 <div id="scoreModal" class="modal">
   <div class="modal-content">
     <h2>評估結果</h2>
+    
+    <!-- Added Warning Banner Here -->
+    <div class="physio-notice">
+      請將此頁面出示給您的物理治療師。<br>請勿關閉此頁面！
+    </div>
+
     <p id="rawScoreText"></p>
     <p id="percentScoreText"></p>
     <p style="font-size:0.9rem; color:#555;">轉換分數越高表示功能越好（最高 100 分）</p>
@@ -48,7 +66,7 @@
 const questions = [
   {
     title: "1. 現在頸痛的程度",
-    options: ["沒有頸痛", "溫和", "中等", "很厲害", "簡直不可想像"]
+    options: ["沒有頸痛", "溫和", "中等", "很厲害", "簡集不可想像"]
   },
   {
     title: "2. 頸痛與睡眠",
@@ -139,8 +157,7 @@ function calculateNPQ() {
 
   document.getElementById("rawScoreText").innerHTML = `原始總分：<strong>${total}</strong> / ${maxScore}`;
   document.getElementById("percentScoreText").innerHTML = `轉換分數：<strong>${percent}</strong> 分`;
-  document. 請將此頁面出示給您的物理治療師。請勿關閉此頁面！
-  
+
   document.getElementById("scoreModal").style.display = "block";
 }
 
